@@ -2,9 +2,10 @@
     const {importAll, getScript} = await import(`https://rpgen3.github.io/mylib/export/import.mjs`);
     await Promise.all([
         'https://code.jquery.com/jquery-3.3.1.min.js',
-        'https://kazuhikoarase.github.io/jaconv/lib/jaconv.min.js'
+        'https://kazuhikoarase.github.io/jaconv/lib/jaconv.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/encoding-japanese/1.0.29/encoding.min.js'
     ].map(getScript));
-    const {$, jaconv} = window;
+    const {$, jaconv, Encoding} = window;
     const html = $('body').empty().css({
         'text-align': 'center',
         padding: '1em',
@@ -56,7 +57,13 @@
             type: 'file'
         }).on('change', async ({target}) => {
             const {files} = target;
-            if(files.length) ust = await files[0].text();
+            if(!files.length) return;
+            const a = new Uint8Array(await files[0].arrayBuffer());
+            ust = Encoding.convert(a, {
+                to: 'unicode',
+                from: Encoding.detect(a),
+                type: 'string'
+            });
         });
         const mode = rpgen3.addSelect(html, {
             label: '処理',
@@ -74,33 +81,34 @@
         });
         $('<dt>').appendTo(html);
         rpgen3.addBtn(html, 'LABファイル作成', () => {
-            rpgen3.download(makeLAB(ust, mode, delay), 'ust2lab.lab');
+            rpgen3.download(makeLAB(ust, mode(), delay()), 'ust2lab.lab');
         }).addClass('btn');
     }
     const makeLAB = (ust, mode, delay) => {
         let Tempo = 0,
             Length = 0,
             Lyric = 'R',
-            currentTime = 0,
+            now = 0,
             output = [];
         const check = time => {
             if(time === 0) return '00000';
             else return Math.round(time);
         };
-        const push = (start, end, value) => output.push([...[start, end].map(check), value].join(' '));
-        for(const s of ust.split('\n')) {
+        const push = (now, time, value) => output.push([...[now, now + time].map(check), value === 'n' ? 'N' : value].join(' '));
+        for(const s of ust.split(/[\n\r]+/)) {
             if(s[0] === '[') {
                 if((s !== '[#0000]' && /^\[#[0-9]+\]$/.test(s)) || s === '[#TRACKEND]') {
                     const time = 125E4 / Tempo * Length;
-                    if(Lyric === 'R') push(currentTime, time, 'sil');
+                    if(Lyric === 'R') push(now, time, 'sil');
                     else {
                         const r = choiceVowel(Lyric, mode);
                         if(Array.isArray(r)) {
-                            push(currentTime, currentTime + delay, r[0]);
-                            push(currentTime + delay, time, r[1]);
-                        } push(currentTime, time, r);
+                            push(now, delay, r[0]);
+                            push(now + delay, time, r[1]);
+                        }
+                        else push(now, time, r);
                     }
-                    currentTime += time;
+                    now += time;
                 }
             }
             else {
@@ -114,13 +122,13 @@
                     case 'Length':
                         Length = Number(value);
                         break;
-                    case 'Tempo':
+                    case 'Lyric':
                         Lyric = value;
                         break;
                 }
             }
         }
-        return new Blob(output, {type: 'text/plain'});
+        return URL.createObjectURL(new Blob([output.join('\r\n')], {type: 'text/plain'}));
     };
     const choiceVowel = (() => {
         const toE = new Set('s|sh|z|t|ts|ch|d|j|n|ny|r|ry'.split('|')),
@@ -129,13 +137,13 @@
         return (Lyric, mode) => {
             const s = jaconv.toHebon(Lyric).toLowerCase();
             if(!s) throw `Invalid Lyric=${Lyric}`;
-            const vowel = s.slice(-1),
-                  consonant = s.slice(0, -1);
+            const vowel = s.slice(-1);
+            let c = s.slice(0, -1);
             switch(mode){
                 case 0: return vowel;
                 case 1: {
-                    let c = consonant;
-                    if(toE.has(c)) c ='e';
+                    if(!c) return vowel;
+                    else if(toE.has(c)) c ='e';
                     else if(toN.has(c)) c ='n';
                     else if(toU.has(c)) c ='u';
                     return [c, vowel];
