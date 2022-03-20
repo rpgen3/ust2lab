@@ -54,7 +54,8 @@
         $('<dt>').appendTo(html).text('USTファイル');
         let ust = '';
         $('<input>').appendTo($('<dd>').appendTo(html)).prop({
-            type: 'file'
+            type: 'file',
+            accept: '.ust'
         }).on('change', async ({target}) => {
             const {files} = target;
             if(!files.length) return;
