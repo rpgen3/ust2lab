@@ -79,7 +79,7 @@
             save: true,
             list: [0, ...[...Array(8).keys()].map(v => 10 ** v)]
         });
-        $('<dt>').appendTo(html);
+        $('<dd>').appendTo(html);
         rpgen3.addBtn(html, 'LABファイル作成', () => {
             rpgen3.download(makeLAB(ust, mode(), delay()), 'ust2lab.lab');
         }).addClass('btn');
