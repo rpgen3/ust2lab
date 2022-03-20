@@ -3,7 +3,7 @@
     await Promise.all([
         'https://code.jquery.com/jquery-3.3.1.min.js',
         'https://kazuhikoarase.github.io/jaconv/lib/jaconv.min.js'
-    ].then(getScript));
+    ].map(getScript));
     const {$, jaconv} = window;
     const html = $('body').empty().css({
         'text-align': 'center',
@@ -15,16 +15,15 @@
           foot = $('<footer>').appendTo(html);
     $('<h1>').appendTo(head).text('ust2lab');
     $('<h2>').appendTo(head).text('歌詞に合わせて口パク用の定義ファイルを作成');
-    rpgen3.addA(head, 'https://uo6uo6.hatenablog.com/entry/2021/04/24/160240', 'UTAUの口パクのクオリティを上げたい');
-    $('<h2>').appendTo(head).text('改善その2を実装済み');
     const rpgen3 = await importAll([
         [
             'input',
             'css',
-            'hankaku',
             'util'
         ].map(v => `https://rpgen3.github.io/mylib/export/${v}.mjs`)
     ].flat());
+    rpgen3.addA(head, 'https://uo6uo6.hatenablog.com/entry/2021/04/24/160240', 'UTAUの口パクのクオリティを上げたい');
+    $('<h2>').appendTo(head).text('改善その2を実装済み');
     Promise.all([
         [
             'container',
@@ -124,9 +123,9 @@
         return new Blob(output, {type: 'text/plain'});
     };
     const choiceVowel = (() => {
-        const toE = Set('s|sh|z|t|ts|ch|d|j|n|ny|r|ry'.split('|')),
-              toN = Set('m|b|p|my|by|py'.split('|')),
-              toU = Set(['w']);
+        const toE = new Set('s|sh|z|t|ts|ch|d|j|n|ny|r|ry'.split('|')),
+              toN = new Set('m|b|p|my|by|py'.split('|')),
+              toU = new Set(['w']);
         return (Lyric, mode) => {
             const s = jaconv.toHebon(Lyric).toLowerCase();
             if(!s) throw `Invalid Lyric=${Lyric}`;
