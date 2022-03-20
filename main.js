@@ -51,7 +51,7 @@
     };
     {
         const {html} = addHideArea('input UST file');
-        $('<dt>').appendTo(html).text('ファイル入力');
+        $('<dt>').appendTo(html).text('USTファイル');
         let ust = '';
         $('<input>').appendTo($('<dd>').appendTo(html)).prop({
             type: 'file'
