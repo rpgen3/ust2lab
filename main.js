@@ -15,7 +15,7 @@
           main = $('<main>').appendTo(html),
           foot = $('<footer>').appendTo(html);
     $('<h1>').appendTo(head).text('ust2lab');
-    $('<h2>').appendTo(head).text('歌詞に合わせて口パク用の定義ファイルを作成');
+    $('<h2>').appendTo(head).text('歌詞に合わせたリップシンク用の定義ファイルを作成');
     const rpgen3 = await importAll([
         [
             'input',
