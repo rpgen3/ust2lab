@@ -52,14 +52,17 @@
     {
         const {html} = addHideArea('input UST file');
         $('<dt>').appendTo(html).text('USTファイル');
-        let ust = '';
+        let ust = '',
+            fileName = '';
         $('<input>').appendTo($('<dd>').appendTo(html)).prop({
             type: 'file',
             accept: '.ust'
         }).on('change', async ({target}) => {
             const {files} = target;
             if(!files.length) return;
-            const a = new Uint8Array(await files[0].arrayBuffer());
+            const file = files[0];
+            fileName = file.name.replace('.ust', '');
+            const a = new Uint8Array(await file.arrayBuffer());
             ust = Encoding.convert(a, {
                 to: 'unicode',
                 from: Encoding.detect(a),
@@ -78,11 +81,16 @@
         const delay = rpgen3.addSelect(html, {
             label: '子音発音時間',
             save: true,
-            list: [0, ...[...Array(8).keys()].map(v => 10 ** v)]
+            list: [
+                1E4,
+                1E5,
+                1E6
+            ],
+            value: 1E5
         });
         $('<dd>').appendTo(html);
         rpgen3.addBtn(html, 'LABファイル作成', () => {
-            rpgen3.download(makeLAB(ust, mode(), delay()), 'ust2lab.lab');
+            rpgen3.download(makeLAB(ust, mode(), delay()), `${fileName} - ust2lab.lab`);
         }).addClass('btn');
     }
     const makeLAB = (ust, mode, delay) => {
