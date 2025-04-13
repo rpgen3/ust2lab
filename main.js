@@ -103,7 +103,7 @@
             if(time === 0) return '00000';
             else return Math.round(time);
         };
-        const push = (now, time, value) => output.push([...[now, now + time].map(check), value === 'n' ? 'N' : value].join(' '));
+        const push = (now, time, value) => output.push([...[now, now + time].map(check), value === 'n' ? 'N' : value]);
         for(const s of ust.split(/[\n\r]+/)) {
             if(s[0] === '[') {
                 if((s !== '[#0000]' && /^\[#[0-9]+\]$/.test(s)) || s === '[#TRACKEND]') {
@@ -132,12 +132,21 @@
                         Length = Number(value);
                         break;
                     case 'Lyric':
-                        Lyric = value;
+                        Lyric = value.split(' ').slice(-1)[0];
                         break;
                 }
             }
         }
-        return URL.createObjectURL(new Blob([output.join('\r\n')], {type: 'text/plain'}));
+        // 終了時刻の補正
+        for (let i = 0; i < output.length; i++) {
+            if (i === 0) continue;
+            const now = output[output.length - 1 - i ];
+            const next = output[output.length - i];
+            if (Number(now[1]) > Number(next[0])) {
+                now[1] = next[0];
+            }
+        }
+        return URL.createObjectURL(new Blob([output.map(v=>v.join(' ')).join('\r\n')], {type: 'text/plain'}));
     };
     const choiceVowel = (() => {
         const toE = new Set('s|sh|z|t|ts|ch|d|j|n|ny|r|ry'.split('|')),
