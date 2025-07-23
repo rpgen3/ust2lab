@@ -2,7 +2,7 @@
     const {importAll, getScript} = await import(`https://rpgen3.github.io/mylib/export/import.mjs`);
     await Promise.all([
         'https://code.jquery.com/jquery-3.3.1.min.js',
-        'https://kazuhikoarase.github.io/jaconv/lib/jaconv.min.js',
+        'https://kazuhikoarase.github.io/jaconv/dist/jaconv.mjs',
         'https://cdnjs.cloudflare.com/ajax/libs/encoding-japanese/1.0.29/encoding.min.js'
     ].map(getScript));
     const {$, jaconv, Encoding} = window;
